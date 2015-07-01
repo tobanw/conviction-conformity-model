@@ -23,6 +23,7 @@ STORAGE = 'results/test'
 NODES = 50
 
 # Network topology
+# TODO try other graphs, directed/weighted
 G = nx.scale_free_graph(NODES)
 
 # define public expressions, used as agent states
