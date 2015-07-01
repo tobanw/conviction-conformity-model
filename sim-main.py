@@ -14,6 +14,7 @@ Agent class:
 import numpy as np
 import pandas as pd
 import networkx as nx
+from scipy.optimize import fsolve
 from ComplexNetworkSim import NetworkAgent, Sim, NetworkSimulation, utils, PlotCreator, AnimationCreator
 
 # output directory
@@ -38,7 +39,7 @@ states = [RIGHT for node in G.nodes()]
 #states[-25:] = [RIGHT]*25
 
 # global params
-THETA = (-0.7, -0.9, -0.89) # conviction, conformity, revision cost
+THETA = (-0.7, -0.9, -1.89) # conviction, conformity, revision cost
 GAMMA = (2,2)
 
 
@@ -50,7 +51,6 @@ class MyAgent(NetworkAgent):
     def __init__(self, state, initialiser):
         NetworkAgent.__init__(self, state, initialiser) # doesn't accept stateVector
 
-        self.lamb = 0.5
         self.theta = self.globalSharedParameters['theta']
         self.gamma = self.globalSharedParameters['gamma']
         # TODO try truncated normal instead of uniform distro of initial views
@@ -58,11 +58,12 @@ class MyAgent(NetworkAgent):
 
         # start off agents acting according to their beliefs
         # NOTE this might not work if they are initialized and run one by one
-        self.state = NEUTRAL
-        if self.stateVector < -0.5:
+        if self.stateVector < -1.0/3:
             self.state = LEFT
-        elif self.stateVector > 0.5:
+        elif self.stateVector > 1.0/3:
             self.state = RIGHT
+        else:
+            self.state = NEUTRAL
 
     def Run(self):
         while True:
@@ -75,30 +76,29 @@ class MyAgent(NetworkAgent):
         Solve for optimal action (which is self.state)
         """
         acts = [LEFT,NEUTRAL,RIGHT]
-        maxima = np.array([ [self.theta[0] * (a - self.conviction(b))**2 +
-                            self.theta[1] * self.ms_dev(a) +
-                            self.theta[2] * b  
-                            for b in (0,1) ] for a in acts])
-        globalMaxIndex = np.unravel_index(np.argmax(maxima),maxima.shape)
-
-        # set belief
-        if globalMaxIndex[1] == 1: # agent updates view
-            self.stateVector = self.updated_view()
-        # else remains unchanged
+        maxima = np.array([ self.theta[0] * (a - self.updated_view(self.optim_lam(a)))**2
+                            + self.theta[1] * self.ms_dev(a)
+                            + self.theta[2] * self.optim_lam(a)**self.gamma[0]  
+                            for a in acts ])
+        globalMaxIndex = np.argmax(maxima)
 
         # set action
-        if globalMaxIndex[0] == 0:
-            self.state = LEFT
-        elif globalMaxIndex[0] == 2:
-            self.state = RIGHT
-        else:
-            self.state = NEUTRAL
+        self.state =acts[globalMaxIndex]
 
-    def conviction(self, b):
-        return (self.updated_view()*b + self.stateVector*(1-b))
+        # set belief
+        self.stateVector = self.updated_view( self.optim_lam(acts[globalMaxIndex]) )
 
-    def updated_view(self):
-        return (1-self.lamb)*self.stateVector + self.lamb * self.local_avg()
+    def optim_lam(self, a):
+        """
+        solve non-linear foc for lambda, given discrete `a`
+        """
+        foc_lam = ( lambda lam: self.gamma[0] * self.theta[2]*lam**(self.gamma[0]-1)
+                - 2 * self.theta[0] * (a - self.updated_view(lam) ) *
+                (self.local_avg() - self.stateVector) )
+        return fsolve( foc_lam, 0.5)[0]
+
+    def updated_view(self, lam):
+        return (1-lam)*self.stateVector + lam * self.local_avg()
 
     def local_avg(self):
         nbrs = self.getNeighbouringAgentsIter()
