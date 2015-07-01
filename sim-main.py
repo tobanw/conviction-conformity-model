@@ -14,7 +14,10 @@ Agent class:
 import numpy as np
 import pandas as pd
 import networkx as nx
-from ComplexNetworkSim import NetworkAgent, Sim, NetworkSimulation, utils
+from ComplexNetworkSim import NetworkAgent, Sim, NetworkSimulation, utils, PlotCreator, AnimationCreator
+
+# output directory
+STORAGE = 'results/test'
 
 # Number of nodes 
 NODES = 50
@@ -23,9 +26,9 @@ NODES = 50
 G = nx.scale_free_graph(NODES)
 
 # define public expressions, used as agent states
-LEFT = -1
-NEUTRAL = 0
-RIGHT = 1
+LEFT = -2.0/3
+NEUTRAL = 0.0
+RIGHT = 2.0/3
 
 # initial states of agents
 # TODO initial states should be irrelevant if I set the initial action to belief
@@ -34,7 +37,7 @@ states = [RIGHT for node in G.nodes()]
 #states[-25:] = [RIGHT]*25
 
 # global params
-THETA = (-0.7, -0.9, -0.01) # conviction, conformity, revision cost
+THETA = (-0.7, -0.9, -0.89) # conviction, conformity, revision cost
 GAMMA = (2,2)
 
 
@@ -110,11 +113,11 @@ class MyAgent(NetworkAgent):
 ### Simulation routine
 
 # Simulation constants
-MAX_SIMULATION_TIME = 20.0
+MAX_SIMULATION_TIME = 10.0
 TRIALS = 1
 
 def main():
-    directory = 'results/test' #output directory
+    directory = STORAGE #output directory
     globalSharedParameters = {} # arbitrary dict
     globalSharedParameters['theta'] = THETA
     globalSharedParameters['gamma'] = GAMMA
