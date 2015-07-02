@@ -21,20 +21,19 @@ from ComplexNetworkSim import NetworkAgent, Sim, NetworkSimulation, utils, PlotC
 STORAGE = 'results/test'
 
 # Number of nodes 
-NODES = 50
+NODES = 250
 
 # Network topology
-# TODO try other graphs, directed/weighted
-G = nx.scale_free_graph(NODES)
+#G = nx.scale_free_graph(NODES)
+G = nx.connected_watts_strogatz_graph(NODES,8,0.2)
 
 # define public expressions, used as agent states
 LEFT = -2.0/3
 NEUTRAL = 0.0
 RIGHT = 2.0/3
 
-# initial states of agents
-# TODO initial states should be irrelevant if I set the initial action to belief
-states = [RIGHT for node in G.nodes()]
+# initial states of agents: irrelevant since they'll start by playing belief
+states = [NEUTRAL for node in G.nodes()]
 #states[0:25] = [LEFT]*25
 #states[-25:] = [RIGHT]*25
 
