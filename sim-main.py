@@ -13,8 +13,9 @@ Agent class:
 # imports
 import pandas as pd
 import networkx as nx
-from ComplexNetworkSim import NetworkSimulation, utils, PlotCreator, AnimationCreator
-from agentlogic import MyAgent
+from ComplexNetworkSim import NetworkSimulation, utils, PlotCreator
+from ComplexNetworkSim import AnimationCreator
+from agentlogic import MyAgent, Synchronizer
 
 # output directory
 STORAGE = 'results/test'
@@ -45,7 +46,7 @@ GAMMA = (2,4)
 ### Simulation routine
 
 # Simulation constants
-MAX_SIMULATION_TIME = 10.0
+MAX_SIMULATION_TIME = 40.0
 TRIALS = 1
 directory = STORAGE #output directory
 globalSharedParameters = {} # global dict of params
@@ -69,6 +70,7 @@ def main():
                                    directory,
                                    MAX_SIMULATION_TIME,
                                    TRIALS,
+                                   Synchronizer,
                                    **globalSharedParameters)
     simulation.runSimulation()
 
@@ -83,6 +85,7 @@ def main():
     # save png
     p.plotSimulation(show=False)
 
+    """ don't plot network for now
     mapping = {LEFT:"blue", RIGHT:"red", NEUTRAL:"gray"}
     trialToVisualise = 0
     # create png
@@ -90,6 +93,7 @@ def main():
                               trial=trialToVisualise, delay=30)
     # create animated gif
     visualiser.create_gif(verbose=True)
+    """
 
 
 # run main
