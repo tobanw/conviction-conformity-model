@@ -1,3 +1,11 @@
+"""
+Agent class:
+    - utility / cost function params
+    - decision rule (focs)
+    - attibutes: self-consciousness, 
+    - state: private conviction
+"""
+
 import numpy as np
 from scipy.optimize import fsolve
 from ComplexNetworkSim import NetworkAgent, Sim
