@@ -24,21 +24,21 @@ NODES = 150
 G = nx.erdos_renyi_graph(NODES,0.02)
 
 # define public expressions, used as agent states
-num_acts = 7
+num_acts = 5
 action_set = [ (2.0 * k + 1 - num_acts)/num_acts  for k in range(num_acts) ]
 
 # function that maps [0,1] to rgb proportions on blue-red spectrum
 #color_mapper = matplotlib.colors.LinearSegmentedColormap.from_list('blue-red', ['blue','red'])
 
 # define mapping from [0,1] to rgb proportions
-gray_darkness = 0.4
+gray_darkness = 0.9
 segmap = {'red':   [(0.0,  0.0, 0.0),
                    (0.5,  gray_darkness, gray_darkness),
                    (1.0,  1.0, 1.0)],
 
          'green': [(0.0,  0.0, 0.0),
                    (0.5,  gray_darkness, gray_darkness),
-                   (1.0,  1.0, 1.0)],
+                   (1.0,  0.0, 0.0)],
 
          'blue':  [(0.0,  1.0, 1.0),
                    (0.5,  gray_darkness, gray_darkness),
@@ -69,13 +69,13 @@ GAMMA = (2,4)
 ### Simulation routine
 
 # Simulation constants
-MAX_SIMULATION_TIME = 40.0
+MAX_SIMULATION_TIME = 25.0
 TRIALS = 1
 directory = STORAGE #output directory
-globalSharedParameters = {} # global dict of params
-globalSharedParameters['theta'] = THETA
-globalSharedParameters['gamma'] = GAMMA
-globalSharedParameters['acts'] = action_set
+global_params = {} # global dict of params
+global_params['theta'] = THETA
+global_params['gamma'] = GAMMA
+global_params['acts'] = action_set
 
 def main():
 
@@ -94,7 +94,7 @@ def main():
                                    MAX_SIMULATION_TIME,
                                    TRIALS,
                                    Synchronizer,
-                                   **globalSharedParameters)
+                                   **global_params)
     simulation.runSimulation()
 
 
