@@ -22,15 +22,19 @@ class MyAgent(NetworkAgent):
         self.local_avg = 0.0 # initialize the attribute
 
         # start off agents acting according to their beliefs
-        # TODO: generalize this for arbitrary action set
-        if self.stateVector < -1.0/3:
-            self.state = self.acts[0]
-        elif self.stateVector > 1.0/3:
-            self.state = self.acts[-1]
-        else:
-            self.state = self.acts[1]
+        self.init_states()
 
-        self.buffered_action = self.state # initialize action buffer for synchronous updates
+        # initialize action buffer for synchronous updates
+        self.buffered_action = self.state
+
+    def init_states(self):
+        n = len(self.acts)
+        tmp_acts = self.acts[:]
+        tmp_acts.append(1 + 1.0/n)
+        partition = np.array(tmp_acts) - 1.0/n
+        for k in range(n):
+            if partition[k] <= self.stateVector < partition[k+1]:
+                self.state = self.acts[k]
 
     def Run(self):
         while True:

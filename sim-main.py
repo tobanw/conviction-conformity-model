@@ -11,7 +11,8 @@ Agent class:
 # NOTE: this uses sequential dynamics -- agents act in turn, not simultaneously
 
 # imports
-import pandas as pd
+import numpy as np
+import matplotlib
 import networkx as nx
 from ComplexNetworkSim import NetworkSimulation, utils, PlotCreator
 from ComplexNetworkSim import AnimationCreator
@@ -28,12 +29,23 @@ NODES = 150
 G = nx.erdos_renyi_graph(NODES,0.02)
 
 # define public expressions, used as agent states
-LEFT = -2.0/3
-NEUTRAL = 0.0
-RIGHT = 2.0/3
+num_acts = 7
+action_set = [ (2.0 * k + 1 - num_acts)/num_acts  for k in range(num_acts) ]
+
+# function that maps [0,1] to rgb proportions
+color_mapper = matplotlib.colors.LinearSegmentedColormap.from_list('blue-red', ['blue','red'])
+
+def color_hex(actions, colormap):
+    raw_tuples = [ color_mapper( (act + 1)/2 ) for act in actions ]
+    hex_values = []
+    for rawcolor in raw_tuples:
+        formatter = tuple([ 255 * rgbval for rgbval in rawcolor[:-1] ])
+        hex_values.append('#%02x%02x%02x' % formatter)
+    return hex_values
+
 
 # initial states of agents: irrelevant since they'll start by playing belief
-states = [NEUTRAL for node in G.nodes()]
+states = [0.0 for node in G.nodes()]
 #states[0:25] = [LEFT]*25
 #states[-25:] = [RIGHT]*25
 
@@ -52,7 +64,7 @@ directory = STORAGE #output directory
 globalSharedParameters = {} # global dict of params
 globalSharedParameters['theta'] = THETA
 globalSharedParameters['gamma'] = GAMMA
-globalSharedParameters['acts'] = [LEFT,NEUTRAL,RIGHT]
+globalSharedParameters['acts'] = action_set
 
 def main():
 
@@ -78,9 +90,11 @@ def main():
     # plotting
     myName = "MORALS" #name that you wish to give your image output files
     title = "Simulation of moral expression network"
-    statesToMonitor = [LEFT, NEUTRAL, RIGHT] #even if we have states 0,1,2,3,... plot only 1 and 0
-    colours = ["blue", "gray", "red"] #state 1 in red, state 0 in green
-    labels = ["Left", "Neutral", "Right"] #state 1 named 'Infected', 0 named 'Susceptible'
+    statesToMonitor = action_set #even if we have states 0,1,2,3,... plot only 1 and 0
+    colours = color_hex(action_set,color_mapper)
+    #colours = ["blue", "gray", "red"] #state 1 in red, state 0 in green
+    labels = [ "%1.2f" % act for act in action_set ]
+    #labels = ["Left", "Neutral", "Right"] #state 1 named 'Infected', 0 named 'Susceptible'
     p = PlotCreator(STORAGE, myName, title, statesToMonitor, colours, labels)
     # save png
     p.plotSimulation(show=False)
