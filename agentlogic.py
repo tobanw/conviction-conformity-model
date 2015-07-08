@@ -6,6 +6,7 @@ Agent class:
     - state: private conviction
 """
 
+from __future__ import division
 import numpy as np
 from scipy.optimize import fsolve
 from ComplexNetworkSim import NetworkAgent, Sim
@@ -38,8 +39,8 @@ class MyAgent(NetworkAgent):
     def init_states(self):
         n = len(self.acts)
         tmp_acts = self.acts[:]
-        tmp_acts.append(1 + 1.0/n)
-        partition = np.array(tmp_acts) - 1.0/n
+        tmp_acts.append(1 + 1/n)
+        partition = np.array(tmp_acts) - 1/n
         for k in range(n):
             if partition[k] <= self.stateVector < partition[k+1]:
                 self.state = self.acts[k]
@@ -58,28 +59,26 @@ class MyAgent(NetworkAgent):
         # get local_avg action once to economize on computation
         self.set_local_avg()
 
-        maxima = np.array([ self.theta[0] * (a - self.updated_view(self.optim_lam(a)))**2
+        minima = np.array([ self.theta[0] * (a - self.updated_view(self.optim_lam(a)))**2
             + self.theta[1] * self.ms_dev(a)
-            + self.theta[2] * self.optim_lam(a)**self.gamma[0] *
+            + self.theta[2] * self.optim_lam(a)**self.gamma *
             self.polar_cost()  for a in self.acts ])
-        globalMaxIndex = np.argmax(maxima)
+        globalMinIndex = np.argmin(minima)
 
         # set action
-        self.buffered_action = self.acts[globalMaxIndex]
+        self.buffered_action = self.acts[globalMinIndex]
 
         # set belief
-        self.stateVector = self.updated_view( self.optim_lam(self.acts[globalMaxIndex]) )
+        self.stateVector = self.updated_view( self.optim_lam(self.acts[globalMinIndex]) )
 
     def optim_lam(self, a):
         """
         solve non-linear foc for lambda, given discrete `a`
         """
         foc_lam = ( lambda lam: self.theta[2]*
-                ( self.gamma[0] * lam**(self.gamma[0]-1) * self.polar_cost() 
-                    + lam**self.gamma[0] * 2 * (self.local_avg -
-                        self.stateVector ) )
+                 self.gamma * lam**(self.gamma-1) * self.polar_cost()
                 - 2 * self.theta[0] * (a - self.updated_view(lam) ) *
-                (self.local_avg - self.stateVector) )
+                ( self.local_avg - self.stateVector) )
         return fsolve( foc_lam, 0.3)[0]
 
     def updated_view(self, lam):
@@ -102,7 +101,8 @@ class MyAgent(NetworkAgent):
 
     def polar_cost(self):
         # changing views more costly when avg is far
-        return abs(self.local_avg - self.stateVector)**self.gamma[1]
+        return abs(self.local_avg - self.stateVector)**2
+
 
 class Synchronizer(NetworkAgent):
     """
