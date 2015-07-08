@@ -2,11 +2,6 @@
 Model class: takes params and model specification
     - network structure
     - nodes are Agent objects
-Agent class:
-    - utility / cost function params
-    - decision rule (focs)
-    - attibutes: self-consciousness, 
-    - state: private conviction
 """
 # NOTE: this uses sequential dynamics -- agents act in turn, not simultaneously
 
@@ -32,14 +27,30 @@ G = nx.erdos_renyi_graph(NODES,0.02)
 num_acts = 7
 action_set = [ (2.0 * k + 1 - num_acts)/num_acts  for k in range(num_acts) ]
 
-# function that maps [0,1] to rgb proportions
-color_mapper = matplotlib.colors.LinearSegmentedColormap.from_list('blue-red', ['blue','red'])
+# function that maps [0,1] to rgb proportions on blue-red spectrum
+#color_mapper = matplotlib.colors.LinearSegmentedColormap.from_list('blue-red', ['blue','red'])
+
+# define mapping from [0,1] to rgb proportions
+gray_darkness = 0.4
+segmap = {'red':   [(0.0,  0.0, 0.0),
+                   (0.5,  gray_darkness, gray_darkness),
+                   (1.0,  1.0, 1.0)],
+
+         'green': [(0.0,  0.0, 0.0),
+                   (0.5,  gray_darkness, gray_darkness),
+                   (1.0,  1.0, 1.0)],
+
+         'blue':  [(0.0,  1.0, 1.0),
+                   (0.5,  gray_darkness, gray_darkness),
+                   (1.0,  0.0, 0.0)]}
+# function that maps [0,1] to rgb proportions on blue-gray-red spectrum
+color_mapper = matplotlib.colors.LinearSegmentedColormap('blue-gray-red', segmap)
 
 def color_hex(actions, colormap):
     raw_tuples = [ color_mapper( (act + 1)/2 ) for act in actions ]
     hex_values = []
     for rawcolor in raw_tuples:
-        formatter = tuple([ 255 * rgbval for rgbval in rawcolor[:-1] ])
+        formatter = tuple([ 255 * rgbval for rgbval in rawcolor[:-1] ]) # strip alpha value
         hex_values.append('#%02x%02x%02x' % formatter)
     return hex_values
 
