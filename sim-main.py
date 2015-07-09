@@ -6,13 +6,14 @@ Simulation: takes params and model specification
 # NOTE: this uses sequential dynamics -- agents act in turn, not simultaneously
 
 # imports
-from __future__ import division
+from __future__ import division, print_function
 import numpy as np
 import matplotlib
 import networkx as nx
 from ComplexNetworkSim import NetworkSimulation, utils, PlotCreator
 from ComplexNetworkSim import AnimationCreator
 from agentlogic import MyAgent, Synchronizer
+from time import time
 
 """ Hyperparameters
     - network size
@@ -39,7 +40,7 @@ ngrid = 12 # simplex grid edge size: n/2 * (n-1) theta triplets (do 12)
 # uniform grid on the interior of the unit simplex
 theta_set = [ (x/ngrid, y/ngrid, 1-(x+y)/ngrid) for x in range(1,ngrid) for y in range(1,ngrid-x)]
 
-gamma_set = range(2,5) # do 2-4
+gamma_set = range(2,3) # do 2-4
 
 param_combos = [ { 'theta':theta, 'gamma':gamma, 'acts':action_set } 
                     for gamma in gamma_set for theta in theta_set ]
@@ -66,10 +67,16 @@ def main():
     # - number of trials
     # - global shared parameters (kwd arg)
     for global_params in param_combos:
-        directory = 'results/test/{gamma}--{theta[0]:.2}-{theta[1]:.2}-{theta[2]:.2}--{basename}'.format(
-                theta = global_params['theta'],
-                gamma = global_params['gamma'],
-                basename = sim_name)
+
+        t = time()
+        directory=(
+            'results/test/'
+            '{gamma}--{theta[0]:.2f}-{theta[1]:.2f}-{theta[2]:.2f}--{basename}'.format(
+            theta = global_params['theta'],
+            gamma = global_params['gamma'],
+            basename = sim_name)
+            )
+
         simulation = NetworkSimulation(G,
                                        states,
                                        MyAgent,
@@ -87,7 +94,7 @@ def main():
         statesToMonitor = action_set #even if we have states 0,1,2,3,... plot only 1 and 0
         colours = color_hex(action_set,color_mapper)
         #colours = ["blue", "gray", "red"] #state 1 in red, state 0 in green
-        labels = [ "%1.2f" % act for act in action_set ]
+        labels = [ "{:.2f}".format(act) for act in action_set ]
         #labels = ["Left", "Neutral", "Right"] #state 1 named 'Infected', 0 named 'Susceptible'
         p = PlotCreator(directory, myName, title, statesToMonitor, colours, labels)
         # save png
@@ -102,6 +109,7 @@ def main():
         # create animated gif
         visualiser.create_gif(verbose=True)
         """
+        print('Round complete: {:.2f}s'.format(time()-t) )
 
 
 """
@@ -132,7 +140,7 @@ def color_hex(actions, colormap):
     hex_values = []
     for rawcolor in raw_tuples:
         formatter = tuple([ 255 * rgbval for rgbval in rawcolor[:-1] ]) # strip alpha value
-        hex_values.append('#%02x%02x%02x' % formatter)
+        hex_values.append('#{:0>2x}{:0>2x}{:0>2x}'.format(*formatter))
     return hex_values
 
 

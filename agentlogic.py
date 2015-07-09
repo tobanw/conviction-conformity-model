@@ -31,12 +31,16 @@ class MyAgent(NetworkAgent):
         self.local_avg = 0.0 # initialize the attribute
 
         # start off agents acting according to their beliefs
-        self.init_states()
+        self.init_state()
+
+        # start off agents with leftist expectations
+        # self.state = self.acts[1]
+
 
         # initialize action buffer for synchronous updates
         self.buffered_action = self.state
 
-    def init_states(self):
+    def init_state(self):
         n = len(self.acts)
         tmp_acts = self.acts[:]
         tmp_acts.append(1 + 1/n)
