@@ -110,7 +110,8 @@ class MyAgent(NetworkAgent):
 
 class Synchronizer(NetworkAgent):
     """
-    Environment agent who implements action choices at end of each time step
+    Environment agent who implements action choices at end of each time step.
+    This gives synchronous actions (best response dynamics).
     """
 
     def __init__(self, state, initialiser):

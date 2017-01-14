@@ -3,9 +3,7 @@ Simulation: takes params and model specification
     - network structure
     - nodes are Agent objects
 """
-# NOTE: this uses sequential dynamics -- agents act in turn, not simultaneously
 
-# imports
 from __future__ import division, print_function
 import numpy as np
 import matplotlib
@@ -26,7 +24,7 @@ num_acts = 5
 # define public expressions, used as agent states
 action_set = [ (2.0 * k + 1 - num_acts)/num_acts  for k in range(num_acts) ]
 
-# Network topology
+# Choose network topology
 #G = nx.scale_free_graph(NODES)
 #G = nx.erdos_renyi_graph(NODES,0.02)
 G = nx.powerlaw_cluster_graph(NODES,3,0.8)
@@ -46,7 +44,7 @@ param_combos = [ { 'theta':theta, 'gamma':gamma, 'acts':action_set }
                     for gamma in gamma_set for theta in theta_set ]
 
 
-""" Simulation routine """
+""" Simulation routine: sweep the parameter space """
 
 # Simulation constants
 MAX_SIMULATION_TIME = 15.0
@@ -69,12 +67,12 @@ def main():
     for global_params in param_combos:
 
         t = time()
-        directory=(
+        directory = (
             'results/test/'
             '{gamma}--{theta[0]:.2f}-{theta[1]:.2f}-{theta[2]:.2f}--{basename}'.format(
-            theta = global_params['theta'],
-            gamma = global_params['gamma'],
-            basename = sim_name)
+            theta=global_params['theta'],
+            gamma=global_params['gamma'],
+            basename=sim_name)
             )
 
         simulation = NetworkSimulation(G,
@@ -89,27 +87,30 @@ def main():
 
 
         # plotting
-        myName = sim_name #name that you wish to give your image output files
+        myName = sim_name  # name for image output files
         title = "Shares of positions expressed"
-        statesToMonitor = action_set #even if we have states 0,1,2,3,... plot only 1 and 0
-        colours = color_hex(action_set,color_mapper)
-        #colours = ["blue", "gray", "red"] #state 1 in red, state 0 in green
+        statesToMonitor = action_set  # track all states
+        colours = color_hex(action_set, color_mapper)
+        # colours = ["blue", "gray", "red"]
         labels = [ "{:.2f}".format(act) for act in action_set ]
-        #labels = ["Left", "Neutral", "Right"] #state 1 named 'Infected', 0 named 'Susceptible'
+        # labels = ["Left", "Neutral", "Right"]
         p = PlotCreator(directory, myName, title, statesToMonitor, colours, labels)
-        # save png
+        # save png plot of belief shares over time
         p.plotSimulation(show=False)
 
-        """ don't plot network for now
+        """UNCOMMENT this block to generate animated gif of network evolution
+
+        # example of a 3-state color map (TODO: implement cts map)
         mapping = {LEFT:"blue", RIGHT:"red", NEUTRAL:"gray"}
         trialToVisualise = 0
         # create png
-        visualiser = AnimationCreator(STORAGE, myName, title, mapping,
+        visualiser = AnimationCreator(directory, myName, title, mapping,
                                   trial=trialToVisualise, delay=30)
         # create animated gif
         visualiser.create_gif(verbose=True)
         """
-        print('Round complete: {:.2f}s'.format(time()-t) )
+
+        print('Round complete: {:.2f}s'.format(time()-t))
 
 
 """
@@ -125,11 +126,11 @@ segmap = {'red':   [(0.0,  0.0, 0.0),
                    (0.5,  gray_shade, gray_shade),
                    (1.0,  1.0, 1.0)],
 
-         'green': [(0.0,  0.0, 0.0),
+          'green': [(0.0,  0.0, 0.0),
                    (0.5,  gray_shade, gray_shade),
                    (1.0,  0.0, 0.0)],
 
-         'blue':  [(0.0,  1.0, 1.0),
+          'blue':  [(0.0,  1.0, 1.0),
                    (0.5,  gray_shade, gray_shade),
                    (1.0,  0.0, 0.0)]}
 # function that maps [0,1] to rgb proportions on blue-gray-red spectrum
